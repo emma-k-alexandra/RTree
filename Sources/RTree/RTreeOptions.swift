@@ -13,7 +13,7 @@ public struct RTreeOptions {
     public let reinsertionCount: UInt
     
     public func build<T: SpatialObject>() -> RTree<T> {
-        RTree<T>.new(with: self)
+        RTree(options: self)
         
     }
     
