@@ -19,11 +19,11 @@ public protocol PointN {
 }
 
 extension PointN {
-    static func new() -> Self {
+    public static func new() -> Self {
         Self.from(value: 0)
     }
     
-    func add(_ rhs: Self) -> Self {
+    public func add(_ rhs: Self) -> Self {
         self.componentWise(rhs) { lhs, rhs in
             lhs + rhs
 
@@ -31,7 +31,7 @@ extension PointN {
 
     }
 
-    func subtract(_ rhs: Self) -> Self {
+    public func subtract(_ rhs: Self) -> Self {
         self.componentWise(rhs) { lhs, rhs in
             lhs - rhs
 
@@ -39,7 +39,7 @@ extension PointN {
 
     }
     
-    func divide(_ scalar: Self.Scalar) -> Self {
+    public func divide(_ scalar: Self.Scalar) -> Self {
         self.map { (x) -> Self.Scalar in
             x / scalar
             
@@ -47,7 +47,7 @@ extension PointN {
         
     }
     
-    func multiply(_ scalar: Self.Scalar) -> Self {
+    public func multiply(_ scalar: Self.Scalar) -> Self {
         self.map { (x) -> Self.Scalar in
             x * scalar
             
@@ -55,7 +55,7 @@ extension PointN {
         
     }
     
-    func componentWise(_ rhs: Self, map: (Scalar, Scalar) -> Scalar) -> Self {
+    public func componentWise(_ rhs: Self, map: (Scalar, Scalar) -> Scalar) -> Self {
         let newPoint = self
         
         for i in 0..<self.dimensions() {
@@ -66,7 +66,7 @@ extension PointN {
         
     }
     
-    func map<T: PointN>(_ map: (Scalar) -> T.Scalar) -> T {
+    public func map<T: PointN>(_ map: (Scalar) -> T.Scalar) -> T {
         let newPoint = T.new()
         
         for i in 0..<self.dimensions() {
@@ -78,21 +78,21 @@ extension PointN {
         
     }
     
-    func minPoint(_ rhs: Self) -> Self {
+    public func minPoint(_ rhs: Self) -> Self {
         self.componentWise(rhs) { a, b in
             a < b ? a : b
         }
         
     }
     
-    func maxPoint(_ rhs: Self) -> Self {
+    public func maxPoint(_ rhs: Self) -> Self {
         self.componentWise(rhs) { a, b in
             a > b ? a : b
         }
         
     }
     
-    func fold<T>(_ acc: T, map: (T, Scalar) -> T) -> T {
+    public func fold<T>(_ acc: T, map: (T, Scalar) -> T) -> T {
         var newAcc = acc
         
         for i in 0..<self.dimensions() {
@@ -103,7 +103,7 @@ extension PointN {
         
     }
     
-    func allComponentWise(_ rhs: Self, map: (Scalar, Scalar) -> Bool) -> Bool {
+    public func allComponentWise(_ rhs: Self, map: (Scalar, Scalar) -> Bool) -> Bool {
         for i in 0..<self.dimensions() {
             if !map(self.nth(index: i).value, rhs.nth(index: i).value) {
                 return false
@@ -115,7 +115,7 @@ extension PointN {
         
     }
     
-    func dot(_ rhs: Self) -> Scalar {
+    public func dot(_ rhs: Self) -> Scalar {
         self.componentWise(rhs) { l, r in
             l * r
             
@@ -126,12 +126,12 @@ extension PointN {
         
     }
     
-    func lengthSquared() -> Scalar {
+    public func lengthSquared() -> Scalar {
         self.dot(self)
         
     }
     
-    func lexicalCompare(_ other: Self) -> Bool {
+    public func lexicalCompare(_ other: Self) -> Bool {
         for i in 0..<self.dimensions() {
             let left = self.nth(index: i).value
             let right = other.nth(index: i).value
@@ -148,7 +148,7 @@ extension PointN {
 }
 
 public final class Box<T> {
-    var value: T
+    public var value: T
     
     init(value: T) {
         self.value = value

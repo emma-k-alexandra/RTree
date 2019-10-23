@@ -86,10 +86,18 @@ where
     
     mutating func resolveOverflow(_ state: inout InsertionState) -> InsertionResult<T> {
         if self.children.count > self.options.maxSize {
-            let offsplit = self.split()
-            return .split(offsplit)
+            if state.didReinsert(depth: self.depth) {
+                let offsplit = self.split()
+                return .split(offsplit)
+            } else {
+                state.markReinsertion(depth: self.depth)
+                let reinsertionNodes = self.reinsert()
+                return .reinsert(reinsertionNodes)
+            }
             
         }
+        
+        return .complete
         
     }
     
@@ -132,9 +140,11 @@ where
         }
         
         let offsplit = self.children[Int(bestIndex)...]
+        self.children.removeLast(self.children.count - Int(bestIndex))
+        
         let result = RTreeNode.directoryNode(
             DirectoryNodeData.newParent(
-                offsplit,
+                Array(offsplit),
                 depth: self.depth,
                 options: self.options
             )
@@ -156,6 +166,13 @@ where
         return lCenter.subtract(center).lengthSquared() < rCenter.subtract(center).lengthSquared()
             
         }
+        
+        let numChildren = self.children.count
+        
+        let result = self.children[(numChildren - Int(self.options.reinsertionCount))...]
+        self.children.removeLast(self.children.count - numChildren - Int(self.options.reinsertionCount))
+        
+        return Array(result)
         
     }
     

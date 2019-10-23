@@ -78,7 +78,7 @@ extension RTreeNode: Equatable {
     
 }
 
-public struct RTreeNodeDistanceWrapper<T>: Comparable
+struct RTreeNodeDistanceWrapper<T>: Comparable
 where
     T: SpatialObject
 {

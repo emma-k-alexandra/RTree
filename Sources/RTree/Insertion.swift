@@ -10,12 +10,12 @@ import Foundation
 public struct InsertionState {
     public var reinsertions: [Bool]
     
-    func didReinsert(depth: UInt) -> Bool {
+    public func didReinsert(depth: UInt) -> Bool {
         self.reinsertions[Int(depth)]
         
     }
     
-    mutating func markReinsertion(depth: UInt) {
+    public mutating func markReinsertion(depth: UInt) {
         self.reinsertions[Int(depth)] = true
         
     }

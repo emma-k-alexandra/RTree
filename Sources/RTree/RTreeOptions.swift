@@ -12,9 +12,4 @@ public struct RTreeOptions {
     public let minSize: UInt
     public let reinsertionCount: UInt
     
-    public func build<T: SpatialObject>() -> RTree<T> {
-        RTree(options: self)
-        
-    }
-    
 }
