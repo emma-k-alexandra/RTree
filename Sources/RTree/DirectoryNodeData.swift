@@ -11,10 +11,26 @@ public struct DirectoryNodeData<T>
 where
     T: SpatialObject
 {
-    var boundingBox: BoundingRectangle<T.Point>?
-    var children = [RTreeNode<T>]()
-    var depth: UInt
-    var options: RTreeOptions
+    public var boundingBox: BoundingRectangle<T.Point>? = nil
+    public var children = [RTreeNode<T>]()
+    public var depth: UInt = 1
+    public var options: RTreeOptions = RTreeOptions()
+    
+    public init() {}
+    
+    public init(depth: UInt, options: RTreeOptions) {
+        self.depth = depth
+        self.options = options
+        
+    }
+    
+    public init(boundingBox: BoundingRectangle<T.Point>?, children: [RTreeNode<T>], depth: UInt, options: RTreeOptions) {
+        self.boundingBox = boundingBox
+        self.children = children
+        self.depth = depth
+        self.options = options
+        
+    }
     
     public static func newParent(_ children: [RTreeNode<T>], depth: UInt, options: RTreeOptions) -> DirectoryNodeData<T> {
         var result = DirectoryNodeData(boundingBox: nil, children: children, depth: depth, options: options)
@@ -55,17 +71,18 @@ where
     
     mutating func insert(_ t: RTreeNode<T>, state: inout InsertionState) -> InsertionResult<T>
     {
-        
-        let tMBR: BoundingRectangle<T.Point> = t.minimumBoundingRectangle()
-        
-        self.updateMBRWithElement(tMBR)
+        self.updateMBRWithElement(t.minimumBoundingRectangle())
         
         if t.depth() + 1 == self.depth {
+            print("=)")
             var newChildren = [t]
+            
             self.addChildren(&newChildren)
             return self.resolveOverflow(&state)
             
         }
+        
+        print("=(", t.depth() + 1, self.depth)
         
         var follow = self.chooseSubtree(t)
         let expand = follow.insert(t, state: &state)
@@ -75,11 +92,14 @@ where
             var children = [child]
             self.addChildren(&children)
             return self.resolveOverflow(&state)
+            
         case .reinsert:
             self.updateMBR()
             return expand
+            
         case .complete:
             return .complete
+            
         }
         
     }
@@ -292,8 +312,10 @@ where
         switch self.children[minIndex] {
         case .directoryNode(let data):
             return data
+            
         default:
             fatalError("No leaves at this depth")
+            
         }
         
     }
@@ -353,6 +375,7 @@ where
             switch newFollow {
             case .directoryNode(let data):
                 follow = data
+                
             case .leaf(let t):
                 return t
                 
@@ -369,8 +392,10 @@ where
             switch child {
             case .directoryNode(let data):
                 distance = data.boundingBox!.minDistanceSquared(queryPoint)
+                
             case .leaf(let t):
                 distance = t.distanceSquared(point: queryPoint)
+                
             }
             
             var doPrune = false
@@ -447,14 +472,17 @@ where
             let minDist = child.minimumBoundingRectangle() .minDistanceSquared(point)
             if minDist > smallestMinMax {
                 continue
+                
             }
             
             if let nearestDistance = nearestDistance, minDist > nearestDistance {
                 continue
+                
             }
             
             if let nearest = child.nearestNeighbors(point, nearestDistance: &nearestDistance, result: &result) {
                 nearestDistance = nearest
+                
             }
             
         }

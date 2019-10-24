@@ -12,4 +12,18 @@ public struct RTreeOptions {
     public let minSize: UInt
     public let reinsertionCount: UInt
     
+    public init() {
+        self.maxSize = 6
+        self.minSize = 3
+        self.reinsertionCount = 2
+        
+    }
+    
+    public init(maxSize: UInt, minSize: UInt, reinsertionCount: UInt) {
+        self.maxSize = maxSize
+        self.minSize = minSize
+        self.reinsertionCount = reinsertionCount
+        
+    }
+    
 }

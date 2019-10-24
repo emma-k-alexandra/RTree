@@ -10,6 +10,10 @@ import Foundation
 public struct InsertionState {
     public var reinsertions: [Bool]
     
+    init(maxDepth: UInt) {
+        self.reinsertions = [Bool](repeating: false, count: Int(maxDepth))
+    }
+    
     public func didReinsert(depth: UInt) -> Bool {
         self.reinsertions[Int(depth)]
         
