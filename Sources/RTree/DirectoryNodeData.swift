@@ -139,10 +139,12 @@ where
             
             for child in l {
                 firstMBR.add(child.minimumBoundingRectangle())
+                
             }
             
             for child in r {
                 secondMBR.add(child.minimumBoundingRectangle())
+                
             }
             
             let overlapValue = firstMBR.intersect(secondMBR).area()
@@ -152,12 +154,13 @@ where
             if newBest < best || k == self.options.minSize {
                 best = newBest
                 bestIndex = k
+                
             }
             
         }
         
         let offsplit = self.children[Int(bestIndex)...]
-        self.children.removeLast(self.children.count - Int(bestIndex))
+        self.children.removeLast(self.children.count - offsplit.count)
         
         let result = RTreeNode.directoryNode(
             DirectoryNodeData.newParent(
@@ -209,6 +212,7 @@ where
                 
                 let l = self.children[..<k]
                 let r = self.children[k...]
+                self.children.removeAll()
                 
                 for child in l {
                     firstMBR.add(child.minimumBoundingRectangle())
@@ -382,7 +386,7 @@ where
         
     }
     
-    func extendHeap(heap: inout PriorityQueue<RTreeNodeDistanceWrapper<T>>, children: [RTreeNode<T>], queryPoint: T.Point, pruneDistanceOption: inout T.Point.Scalar?) {
+    func extend(_ heap: inout Heap<RTreeNodeDistanceWrapper<T>>, children: [RTreeNode<T>], queryPoint: T.Point, pruneDistanceOption: inout T.Point.Scalar?) {
         for child in children {
             var distance: T.Point.Scalar = 0
             
@@ -413,7 +417,7 @@ where
             }
             
             if !doPrune {
-                heap.push(newElement: RTreeNodeDistanceWrapper(node: child, distance: distance))
+                heap.insert(RTreeNodeDistanceWrapper(node: child, distance: distance))
                 
             }
             
@@ -423,14 +427,14 @@ where
     
     func nearestNeighbor(_ point: T.Point) -> T? {
         var smallestMinMax: T.Point.Scalar? = nil
-        var heap = PriorityQueue<RTreeNodeDistanceWrapper<T>>(<)
+        var heap = Heap<RTreeNodeDistanceWrapper<T>>(sort: <)
         
-        self.extendHeap(heap: &heap, children: self.children, queryPoint: point, pruneDistanceOption: &smallestMinMax)
+        self.extend(&heap, children: self.children, queryPoint: point, pruneDistanceOption: &smallestMinMax)
         
-        while let current = heap.pop() {
+        while let current = heap.remove() {
             switch current.node {
             case .directoryNode(let data):
-                self.extendHeap(heap: &heap, children: data.children, queryPoint: point, pruneDistanceOption: &smallestMinMax)
+                self.extend(&heap, children: data.children, queryPoint: point, pruneDistanceOption: &smallestMinMax)
             case .leaf(let t):
                 return t
                 

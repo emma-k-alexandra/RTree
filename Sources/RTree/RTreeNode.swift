@@ -20,6 +20,7 @@ extension RTreeNode {
         switch self {
         case .directoryNode(let data):
             return data.boundingBox!
+            
         case .leaf(let t):
             return t.minimumBoundingRectangle()
             
@@ -31,8 +32,10 @@ extension RTreeNode {
         switch self {
         case .directoryNode(let data):
             return data.depth
+            
         default:
             return 0
+            
         }
         
     }
@@ -74,6 +77,7 @@ extension RTreeNode {
 extension RTreeNode: Equatable {
     public static func == (lhs: RTreeNode<T>, rhs: RTreeNode<T>) -> Bool {
         lhs.minimumBoundingRectangle() == rhs.minimumBoundingRectangle() && lhs.depth() == rhs.depth()
+        
     }
     
 }
@@ -87,10 +91,12 @@ where
     
     public static func < (lhs: RTreeNodeDistanceWrapper<T>, rhs: RTreeNodeDistanceWrapper<T>) -> Bool {
         lhs.distance < rhs.distance
+        
     }
     
     public static func == (lhs: RTreeNodeDistanceWrapper<T>, rhs: RTreeNodeDistanceWrapper<T>) -> Bool {
         lhs.distance == rhs.distance
+        
     }
     
 }

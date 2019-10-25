@@ -8,6 +8,7 @@ where
     init() {
         self.root = DirectoryNodeData()
         self.size = 0
+        
     }
     
     public func nearestNeighbor(_ queryPoint: T.Point) -> T? {

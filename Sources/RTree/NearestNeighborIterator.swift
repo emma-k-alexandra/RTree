@@ -10,16 +10,16 @@ import Foundation
 public struct NearestNeighborIterator<T>
     where T: SpatialObject
 {
-    let nodes: PriorityQueue<RTreeNodeDistanceWrapper<T>>
+    var nodes: Heap<RTreeNodeDistanceWrapper<T>>
     let queryPoint: T.Point
     
-    init(nodes: PriorityQueue<RTreeNodeDistanceWrapper<T>>, queryPoint: T.Point) {
+    init(nodes: Heap<RTreeNodeDistanceWrapper<T>>, queryPoint: T.Point) {
         self.nodes = nodes
         self.queryPoint = queryPoint
     }
     
     init(root: DirectoryNodeData<T>, queryPoint: T.Point) {
-        var result = NearestNeighborIterator(nodes: PriorityQueue(<), queryPoint: queryPoint)
+        var result = NearestNeighborIterator(nodes: Heap(sort: <), queryPoint: queryPoint)
         
         result.extendHeap(root.children)
         
@@ -46,7 +46,7 @@ extension NearestNeighborIterator {
         })
         
         for child in distanceWrappers {
-            self.nodes.push(newElement: child)
+            self.nodes.insert(child)
             
         }
         
@@ -58,7 +58,7 @@ extension NearestNeighborIterator: IteratorProtocol {
     public typealias Element = T
     
     public mutating func next() -> T? {
-        while let current = self.nodes.pop() {
+        while let current = self.nodes.remove() {
             switch current.node {
             case .directoryNode(let data):
                 self.extendHeap(data.children)
