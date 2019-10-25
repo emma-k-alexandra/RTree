@@ -94,6 +94,7 @@ final class RTreeTests: XCTestCase {
         let oneone = Element(point: Point2D(x: 1, y: 1))
         let threethree = Element(point: Point2D(x: 3, y: 3))
         
+        tree.insert(oneone)
         tree.insert(threethree)
         
         XCTAssertEqual(tree.nearestNeighbor(zerozero.point)!, oneone)
