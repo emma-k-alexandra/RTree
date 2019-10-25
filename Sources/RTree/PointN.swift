@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol PointN {
+public protocol PointN: Equatable {
     associatedtype Scalar: FloatingPoint
     
     func dimensions() -> UInt;
@@ -147,10 +147,15 @@ extension PointN {
 
 }
 
-public final class Box<T> {
+public final class Box<T>: CustomStringConvertible {
     public var value: T
     
-    init(value: T) {
+    public var description: String {
+        return "\(value)"
+        
+    }
+    
+    init(_ value: T) {
         self.value = value
         
     }

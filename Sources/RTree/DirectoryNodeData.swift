@@ -74,15 +74,12 @@ where
         self.updateMBRWithElement(t.minimumBoundingRectangle())
         
         if t.depth() + 1 == self.depth {
-            print("=)")
             var newChildren = [t]
             
             self.addChildren(&newChildren)
             return self.resolveOverflow(&state)
             
         }
-        
-        print("=(", t.depth() + 1, self.depth)
         
         var follow = self.chooseSubtree(t)
         let expand = follow.insert(t, state: &state)
@@ -190,7 +187,7 @@ where
         let numChildren = self.children.count
         
         let result = self.children[(numChildren - Int(self.options.reinsertionCount))...]
-        self.children.removeLast(self.children.count - numChildren - Int(self.options.reinsertionCount))
+        self.children.removeLast(numChildren - result.count)
         
         return Array(result)
         
