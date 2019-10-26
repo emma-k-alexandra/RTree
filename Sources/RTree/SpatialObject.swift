@@ -5,7 +5,7 @@
 //  Created by Emma K Alexandra on 10/20/19.
 //
 
-public protocol SpatialObject {
+public protocol SpatialObject: Codable {
     associatedtype Point: PointN
     
     func minimumBoundingRectangle() -> BoundingRectangle<Point>;

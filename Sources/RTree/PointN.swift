@@ -7,14 +7,14 @@
 
 import Foundation
 
-public protocol PointN: Equatable {
-    associatedtype Scalar: FloatingPoint
+public protocol PointN: Equatable, Codable {
+    associatedtype Scalar: FloatingPoint, Codable
     
-    func dimensions() -> UInt;
+    func dimensions() -> UInt
     
-    static func from(value: Scalar) -> Self;
+    static func from(value: Scalar) -> Self
     
-    func nth(index: UInt) -> Box<Scalar>;
+    func nth(index: UInt) -> Box<Scalar>
     
 }
 
@@ -145,19 +145,4 @@ extension PointN {
         
     }
 
-}
-
-public final class Box<T>: CustomStringConvertible {
-    public var value: T
-    
-    public var description: String {
-        return "\(value)"
-        
-    }
-    
-    init(_ value: T) {
-        self.value = value
-        
-    }
-    
 }

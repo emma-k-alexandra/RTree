@@ -1,4 +1,4 @@
-public struct RTree<T>
+public struct RTree<T>: Codable
 where
     T: SpatialObject
 {

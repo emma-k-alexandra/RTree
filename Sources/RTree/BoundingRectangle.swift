@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct BoundingRectangle<V>
+public struct BoundingRectangle<V>: Codable
 where
     V: PointN
 {

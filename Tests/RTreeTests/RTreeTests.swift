@@ -34,13 +34,17 @@ struct Point2D: PointN {
         
     }
     
+}
+
+extension Point2D: Equatable {
     static func == (lhs: Point2D, rhs: Point2D) -> Bool {
         lhs.x.value == rhs.x.value && lhs.y.value == rhs.y.value
+        
     }
     
 }
 
-struct Element: SpatialObject, Equatable {
+struct Element: SpatialObject {
     typealias Point = Point2D
         
     let point: Point
@@ -56,8 +60,12 @@ struct Element: SpatialObject, Equatable {
         
     }
     
+}
+
+extension Element: Equatable {
     static func == (lhs: Element, rhs: Element) -> Bool {
         lhs.point == rhs.point && lhs.hello == rhs.hello
+        
     }
     
 }

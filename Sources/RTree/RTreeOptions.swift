@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RTreeOptions {
+public struct RTreeOptions: Codable {
     public let maxSize: UInt
     public let minSize: UInt
     public let reinsertionCount: UInt

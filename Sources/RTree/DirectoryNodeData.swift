@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DirectoryNodeData<T>
+public struct DirectoryNodeData<T>: Codable
 where
     T: SpatialObject
 {
