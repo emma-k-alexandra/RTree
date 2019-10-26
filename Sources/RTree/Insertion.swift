@@ -12,6 +12,7 @@ public struct InsertionState {
     
     init(maxDepth: UInt) {
         self.reinsertions = [Bool](repeating: false, count: Int(maxDepth))
+        
     }
     
     public func didReinsert(depth: UInt) -> Bool {
@@ -33,4 +34,5 @@ where
     case complete
     case split(RTreeNode<T>)
     case reinsert([RTreeNode<T>])
+    
 }

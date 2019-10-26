@@ -60,6 +60,7 @@ extension PointN {
         
         for i in 0..<self.dimensions() {
             newPoint.nth(index: i).value = map(self.nth(index: i).value, rhs.nth(index: i).value)
+            
         }
         
         return newPoint
@@ -81,6 +82,7 @@ extension PointN {
     public func minPoint(_ rhs: Self) -> Self {
         self.componentWise(rhs) { a, b in
             a < b ? a : b
+            
         }
         
     }
@@ -88,6 +90,7 @@ extension PointN {
     public func maxPoint(_ rhs: Self) -> Self {
         self.componentWise(rhs) { a, b in
             a > b ? a : b
+            
         }
         
     }
@@ -97,6 +100,7 @@ extension PointN {
         
         for i in 0..<self.dimensions() {
             newAcc = map(acc, self.nth(index: i).value)
+            
         }
         
         return newAcc
@@ -107,6 +111,7 @@ extension PointN {
         for i in 0..<self.dimensions() {
             if !map(self.nth(index: i).value, rhs.nth(index: i).value) {
                 return false
+                
             }
             
         }

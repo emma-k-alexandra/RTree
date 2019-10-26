@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NearestNeighborIterator.swift
 //  
 //
 //  Created by Emma K Alexandra on 10/23/19.
@@ -16,6 +16,7 @@ public struct NearestNeighborIterator<T>
     init(nodes: Heap<RTreeNodeDistanceWrapper<T>>, queryPoint: T.Point) {
         self.nodes = nodes
         self.queryPoint = queryPoint
+        
     }
     
     init(root: DirectoryNodeData<T>, queryPoint: T.Point) {
@@ -37,8 +38,10 @@ extension NearestNeighborIterator {
             switch child {
             case .directoryNode(let data):
                 distance = data.boundingBox!.minDistanceSquared(self.queryPoint)
+                
             case .leaf(let t):
                 distance = t.distanceSquared(point: self.queryPoint)
+                
             }
             
             return RTreeNodeDistanceWrapper(node: child, distance: distance)
@@ -62,8 +65,10 @@ extension NearestNeighborIterator: IteratorProtocol {
             switch current.node {
             case .directoryNode(let data):
                 self.extendHeap(data.children)
+                
             case .leaf(let t):
                 return t
+                
             }
             
         }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Utilities.swift
 //  
 //
 //  Created by Emma K Alexandra on 10/20/19.
@@ -26,4 +26,5 @@ func minInline<T: FloatingPoint>(_ a: T, _ b: T) -> T {
         return b
         
     }
+    
 }

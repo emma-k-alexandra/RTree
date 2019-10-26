@@ -1,3 +1,10 @@
+//
+//  RTree.swift
+//
+//
+//  Created by Emma K Alexandra on 10/26/19.
+//
+
 public struct RTree<T>: Codable
 where
     T: SpatialObject
