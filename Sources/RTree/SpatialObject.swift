@@ -8,11 +8,11 @@
 public protocol SpatialObject: Codable {
     associatedtype Point: PointN
     
-    func minimumBoundingRectangle() -> BoundingRectangle<Point>;
+    func minimumBoundingRectangle() -> BoundingRectangle<Point>
     
-    func distanceSquared(point: Point) -> Point.Scalar;
+    func distanceSquared(point: Point) -> Point.Scalar
     
-    func contains(point: Point) -> Bool;
+    func contains(point: Point) -> Bool
     
 }
 

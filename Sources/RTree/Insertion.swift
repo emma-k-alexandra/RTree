@@ -15,6 +15,9 @@ public struct InsertionState {
         
     }
     
+}
+
+extension InsertionState {
     public func didReinsert(depth: UInt) -> Bool {
         self.reinsertions[Int(depth)]
         

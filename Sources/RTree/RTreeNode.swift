@@ -15,42 +15,6 @@ where
     case directoryNode(DirectoryNodeData<T>)
 }
 
-extension RTreeNode: Codable {
-    
-    enum CodingKeys: CodingKey {
-        case leaf
-        case directoryNode
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        switch self {
-        case .directoryNode(let data):
-            try container.encode(data, forKey: .directoryNode)
-            
-        case .leaf(let t):
-            try container.encode(t, forKey: .leaf)
-            
-        }
-        
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        do {
-            self = .directoryNode(try DirectoryNodeData(from: decoder))
-            
-        } catch {
-            self = .leaf(try container.decode(T.self, forKey: .leaf))
-            
-        }
-        
-    }
-    
-}
-
 extension RTreeNode {
     public func minimumBoundingRectangle() -> BoundingRectangle<T.Point> {
         switch self {
@@ -118,20 +82,37 @@ extension RTreeNode: Equatable {
     
 }
 
-struct RTreeNodeDistanceWrapper<T>: Comparable
-where
-    T: SpatialObject
-{
-    let node: RTreeNode<T>
-    let distance: T.Point.Scalar
+extension RTreeNode: Codable {
     
-    public static func < (lhs: RTreeNodeDistanceWrapper<T>, rhs: RTreeNodeDistanceWrapper<T>) -> Bool {
-        lhs.distance < rhs.distance
+    enum CodingKeys: CodingKey {
+        case leaf
+        case directoryNode
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        switch self {
+        case .directoryNode(let data):
+            try container.encode(data, forKey: .directoryNode)
+            
+        case .leaf(let t):
+            try container.encode(t, forKey: .leaf)
+            
+        }
         
     }
     
-    public static func == (lhs: RTreeNodeDistanceWrapper<T>, rhs: RTreeNodeDistanceWrapper<T>) -> Bool {
-        lhs.distance == rhs.distance
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        do {
+            self = .directoryNode(try DirectoryNodeData(from: decoder))
+            
+        } catch {
+            self = .leaf(try container.decode(T.self, forKey: .leaf))
+            
+        }
         
     }
     

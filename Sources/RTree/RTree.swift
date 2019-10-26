@@ -9,34 +9,12 @@ public struct RTree<T>: Codable
 where
     T: SpatialObject
 {
-    public var root: DirectoryNodeData<T>
-    public var size: UInt
+    public var root: DirectoryNodeData<T> = DirectoryNodeData()
+    public var size: UInt = 0
     
-    init() {
-        self.root = DirectoryNodeData()
-        self.size = 0
-        
-    }
-    
-    public func nearestNeighbor(_ queryPoint: T.Point) -> T? {
-        let result = self.root.nearestNeighbor(queryPoint)
-        
-        if result == nil, self.size == 0 {
-            var iterator =  self.nearestNeighborIterator(queryPoint)
-            
-            return iterator.next()
-            
-        }
-        
-        return result
-        
-    }
-    
-    public func nearestNeighborIterator(_ queryPoint: T.Point) -> NearestNeighborIterator<T> {
-        NearestNeighborIterator(root: self.root, queryPoint: queryPoint)
-        
-    }
-    
+}
+
+extension RTree {
     public mutating func insert(_ t: T) {
         var state = InsertionState(maxDepth: self.root.depth + 1)
         var insertionStack = [RTreeNode.leaf(t)]
@@ -64,6 +42,28 @@ where
         }
         
         self.size += 1
+        
+    }
+    
+}
+
+extension RTree {
+    public func nearestNeighbor(_ queryPoint: T.Point) -> T? {
+        let result = self.root.nearestNeighbor(queryPoint)
+        
+        if result == nil, self.size == 0 {
+            var iterator =  self.nearestNeighborIterator(queryPoint)
+            
+            return iterator.next()
+            
+        }
+        
+        return result
+        
+    }
+    
+    public func nearestNeighborIterator(_ queryPoint: T.Point) -> NearestNeighborIterator<T> {
+        NearestNeighborIterator(root: self.root, queryPoint: queryPoint)
         
     }
     

@@ -8,7 +8,8 @@
 import Foundation
 
 public struct NearestNeighborIterator<T>
-    where T: SpatialObject
+where
+    T: SpatialObject
 {
     var nodes: Heap<RTreeNodeDistanceWrapper<T>>
     let queryPoint: T.Point

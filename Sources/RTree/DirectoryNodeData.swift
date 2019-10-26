@@ -32,6 +32,9 @@ where
         
     }
     
+}
+
+extension DirectoryNodeData {
     public static func newParent(_ children: [RTreeNode<T>], depth: UInt, options: RTreeOptions) -> DirectoryNodeData<T> {
         var result = DirectoryNodeData(boundingBox: nil, children: children, depth: depth, options: options)
         result.updateMBR()
