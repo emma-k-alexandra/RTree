@@ -23,7 +23,7 @@ where
     init(root: DirectoryNodeData<T>, queryPoint: T.Point) {
         var result = NearestNeighborIterator(nodes: Heap(sort: <), queryPoint: queryPoint)
         
-        result.extendHeap(root.children)
+        result.extendHeap(root.children!)
         
         self = result
         
@@ -64,8 +64,13 @@ extension NearestNeighborIterator: IteratorProtocol {
     public mutating func next() -> T? {
         while let current = self.nodes.remove() {
             switch current.node {
-            case .directoryNode(let data):
-                self.extendHeap(data.children)
+            case .directoryNode(var data):
+                if data.children == nil {
+                    try! data.load()
+                    
+                }
+                
+                self.extendHeap(data.children!)
                 
             case .leaf(let t):
                 return t

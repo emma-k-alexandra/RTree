@@ -13,7 +13,7 @@ struct Point2D: PointN {
         
     }
     
-    func dimensions() -> UInt {
+    func dimensions() -> Int {
         2
         
     }
@@ -23,13 +23,26 @@ struct Point2D: PointN {
         
     }
     
-    func nth(index: UInt) -> Box<Scalar> {
-        if index == 0 {
-            return self.x
+    subscript(index: Int) -> Scalar {
+        get {
+            if index == 0 {
+                return self.x.value
+                
+            } else {
+                return self.y.value
+                
+            }
             
-        } else {
-            return self.y
-            
+        }
+        set(newValue) {
+            if index == 0 {
+                self.x.value = newValue
+                
+            } else {
+                self.y.value = newValue
+                
+            }
+             
         }
         
     }
@@ -51,7 +64,7 @@ struct Element: SpatialObject {
     let hello = "world"
     
     func minimumBoundingRectangle() -> BoundingRectangle<Point2D> {
-        BoundingRectangle(lower: self.point, upper: self.point)
+        return BoundingRectangle(lower: self.point, upper: self.point)
         
     }
     
@@ -70,40 +83,53 @@ extension Element: Equatable {
     
 }
 
+@available(OSX 10.12, *)
 final class RTreeTests: XCTestCase {
-    func testInit() {
-        let tree = RTree<Element>()
+    func testInit() throws {
+        var path = FileManager.default.temporaryDirectory
+        path.appendPathComponent("testRTreeInit.db")
+        
+        let tree = try RTree<Element>(path: path)
         
         XCTAssertEqual(tree.size, 0)
         
     }
     
-    func testInsert() {
-        var tree = RTree<Element>()
+    func testInsert() throws {
+        var path = FileManager.default.temporaryDirectory
+        path.appendPathComponent("testRTreeInsert.db")
         
-        tree.insert(Element(point: Point2D(x: 0, y: 0)))
-        tree.insert(Element(point: Point2D(x: 1, y: 1)))
+        var tree = try RTree<Element>(path: path)
+        
+        try tree.insert(Element(point: Point2D(x: 0, y: 0)))
+        try tree.insert(Element(point: Point2D(x: 1, y: 1)))
         
     }
     
-    func testLotsOfInserts() {
-        var tree = RTree<Element>()
+    func testLotsOfInserts() throws {
+        var path = FileManager.default.temporaryDirectory
+        path.appendPathComponent("testRTreeLotsOfInserts.db")
         
-        for i in 0..<200 {
-            tree.insert(Element(point: Point2D(x: Double(i), y: Double(i))))
+        var tree = try RTree<Element>(path: path)
+        
+        for i in 2..<200 {
+            try tree.insert(Element(point: Point2D(x: Double(i), y: Double(i))))
             
         }
         
     }
     
-    func testNearestNeighbor() {
-        var tree = RTree<Element>()
+    func testNearestNeighbor() throws {
+        var path = FileManager.default.temporaryDirectory
+        path.appendPathComponent("testRTreeNearestNeighbor.db")
+        
+        var tree = try RTree<Element>(path: path)
         let zerozero = Element(point: Point2D(x: 0, y: 0))
         let oneone = Element(point: Point2D(x: 1, y: 1))
         let threethree = Element(point: Point2D(x: 3, y: 3))
         
-        tree.insert(oneone)
-        tree.insert(threethree)
+        try tree.insert(oneone)
+        try tree.insert(threethree)
         
         XCTAssertEqual(tree.nearestNeighbor(zerozero.point)!, oneone)
         

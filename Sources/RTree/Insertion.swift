@@ -10,21 +10,22 @@ import Foundation
 public struct InsertionState {
     public var reinsertions: [Bool]
     
-    init(maxDepth: UInt) {
-        self.reinsertions = [Bool](repeating: false, count: Int(maxDepth))
+    init(maxDepth: Int) {
+        assert(maxDepth > -1, "maxDepth must be non-negative")
+        self.reinsertions = [Bool](repeating: false, count: maxDepth)
         
     }
     
 }
 
 extension InsertionState {
-    public func didReinsert(depth: UInt) -> Bool {
-        self.reinsertions[Int(depth)]
+    public func didReinsert(depth: Int) -> Bool {
+        self.reinsertions[depth]
         
     }
     
-    public mutating func markReinsertion(depth: UInt) {
-        self.reinsertions[Int(depth)] = true
+    public mutating func markReinsertion(depth: Int) {
+        self.reinsertions[depth] = true
         
     }
     

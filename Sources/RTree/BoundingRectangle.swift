@@ -21,6 +21,7 @@ where
     public func from(points: AnyIterator<V>) -> Self {
         guard let firstElement = points.next() else {
             fatalError("Provided iterator of points was empty.")
+            
         }
         
         var rect = self.from(point: firstElement)
@@ -92,7 +93,10 @@ where
     }
     
     public func center() -> V {
-        self.lower.add(self.upper.subtract(self.lower).divide(2))
+        self.lower.add(self.upper)
+        let result = self.lower.add(self.upper.subtract(self.lower).divide(2))
+        
+        return result
         
     }
     
@@ -139,17 +143,17 @@ where
         let l = self.lower.subtract(point)
         let u = self.upper.subtract(point)
         
-        let min = V.new()
-        let max = V.new()
+        var min = V()
+        var max = V()
         
         for i in 0..<point.dimensions() {
-            if abs(l.nth(index: i).value) < abs(u.nth(index: i).value) {
-                min.nth(index: i).value = l.nth(index: i).value
-                max.nth(index: i).value = u.nth(index: i).value
+            if abs(l[i]) < abs(u[i]) {
+                min[i] = l[i]
+                max[i] = u[i]
                 
             } else {
-                min.nth(index: i).value = u.nth(index: i).value
-                max.nth(index: i).value = l.nth(index: i).value
+                min[i] = u[i]
+                max[i] = l[i]
                 
             }
             
@@ -158,9 +162,9 @@ where
         let result: V.Scalar = 0
         
         for i in 0..<point.dimensions() {
-            let p = min
+            var p = min
             
-            p.nth(index: i).value = max.nth(index: i).value
+            p[i] = max[i]
             let newDistance = p.lengthSquared()
             
             if newDistance < result || i == 0 {

@@ -28,45 +28,13 @@ extension RTreeNode {
         
     }
     
-    public func depth() -> UInt {
+    public func depth() -> Int {
         switch self {
         case .directoryNode(let data):
             return data.depth
             
-        default:
+        case .leaf:
             return 0
-            
-        }
-        
-    }
-    
-    public func nearestNeighbors(_ point: T.Point, nearestDistance: inout T.Point.Scalar?, result: inout [T]) -> T.Point.Scalar? {
-        switch self {
-        case .directoryNode(let data):
-            return data.nearestNeighbors(point, nearestDistance: &nearestDistance, result: &result)
-        case .leaf(let t):
-            let distance = t.distanceSquared(point: point)
-            
-            if let nearest = nearestDistance {
-                if distance <= nearest {
-                    if distance < nearest {
-                        result.removeAll()
-                        
-                    }
-                    
-                    result.append(t)
-                    return distance
-                    
-                } else {
-                    return nil
-                    
-                }
-                
-            } else {
-                result.append(t)
-                return distance
-                
-            }
             
         }
         
@@ -83,7 +51,6 @@ extension RTreeNode: Equatable {
 }
 
 extension RTreeNode: Codable {
-    
     enum CodingKeys: CodingKey {
         case leaf
         case directoryNode

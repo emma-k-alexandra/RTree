@@ -8,9 +8,9 @@
 import Foundation
 
 public struct RTreeOptions: Codable {
-    public let maxSize: UInt
-    public let minSize: UInt
-    public let reinsertionCount: UInt
+    public let maxSize: Int
+    public let minSize: Int
+    public let reinsertionCount: Int
     
     public init() {
         self.maxSize = 6
@@ -19,7 +19,9 @@ public struct RTreeOptions: Codable {
         
     }
     
-    public init(maxSize: UInt, minSize: UInt, reinsertionCount: UInt) {
+    public init(maxSize: Int, minSize: Int, reinsertionCount: Int) {
+        assert(maxSize > -1 && minSize > -1 && reinsertionCount > -1, "All parameters of options must be non-negative")
+        
         self.maxSize = maxSize
         self.minSize = minSize
         self.reinsertionCount = reinsertionCount

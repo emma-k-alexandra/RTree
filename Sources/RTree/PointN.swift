@@ -10,17 +10,18 @@ import Foundation
 public protocol PointN: Equatable, Codable {
     associatedtype Scalar: FloatingPoint, Codable
     
-    func dimensions() -> UInt
+    func dimensions() -> Int
     
     static func from(value: Scalar) -> Self
     
-    func nth(index: UInt) -> Box<Scalar>
+    subscript(index: Int) -> Scalar { get set }
     
 }
 
 extension PointN {
-    public static func new() -> Self {
-        Self.from(value: 0)
+    public init() {
+        self = Self.from(value: 0)
+        
     }
     
     public func add(_ rhs: Self) -> Self {
@@ -40,7 +41,7 @@ extension PointN {
     }
     
     public func divide(_ scalar: Self.Scalar) -> Self {
-        self.map { (x) -> Self.Scalar in
+        self.map { x -> Self.Scalar in
             x / scalar
             
         }
@@ -48,18 +49,18 @@ extension PointN {
     }
     
     public func multiply(_ scalar: Self.Scalar) -> Self {
-        self.map { (x) -> Self.Scalar in
+        self.map { x -> Self.Scalar in
             x * scalar
             
         }
         
     }
     
-    public func componentWise(_ rhs: Self, map: (Scalar, Scalar) -> Scalar) -> Self {
-        let newPoint = self
+    public func componentWise(_ rhs: Self, map: (Self.Scalar, Self.Scalar) -> Self.Scalar) -> Self {
+        var newPoint = Self()
         
         for i in 0..<self.dimensions() {
-            newPoint.nth(index: i).value = map(self.nth(index: i).value, rhs.nth(index: i).value)
+            newPoint[i] = map(self[i], rhs[i])
             
         }
         
@@ -67,11 +68,11 @@ extension PointN {
         
     }
     
-    public func map<T: PointN>(_ map: (Scalar) -> T.Scalar) -> T {
-        let newPoint = T.new()
+    public func map<T: PointN>(_ map: (Self.Scalar) -> T.Scalar) -> T {
+        var newPoint = T()
         
         for i in 0..<self.dimensions() {
-            newPoint.nth(index: i).value = map(self.nth(index: i).value)
+            newPoint[i] = map(self[i])
             
         }
         
@@ -99,7 +100,7 @@ extension PointN {
         var newAcc = acc
         
         for i in 0..<self.dimensions() {
-            newAcc = map(acc, self.nth(index: i).value)
+            newAcc = map(acc, self[i])
             
         }
         
@@ -109,7 +110,7 @@ extension PointN {
     
     public func allComponentWise(_ rhs: Self, map: (Scalar, Scalar) -> Bool) -> Bool {
         for i in 0..<self.dimensions() {
-            if !map(self.nth(index: i).value, rhs.nth(index: i).value) {
+            if !map(self[i], rhs[i]) {
                 return false
                 
             }
@@ -138,8 +139,8 @@ extension PointN {
     
     public func lexicalCompare(_ other: Self) -> Bool {
         for i in 0..<self.dimensions() {
-            let left = self.nth(index: i).value
-            let right = other.nth(index: i).value
+            let left = self[i]
+            let right = other[i]
             
             if left != right {
                 return false
