@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Errors that can occur while using this tree
 public enum RTreeError: Error {
     case nodeHasNoStorage
     case storageNotPresent

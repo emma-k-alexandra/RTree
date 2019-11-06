@@ -7,19 +7,27 @@
 
 import Foundation
 
+/// Engine for storing a tree on disk. Super wasteful rn.
 public class Storage<T>
 where
     T: SpatialObject
 {
+    /// The location to store the tree
     public let path: URL
     
+    /// The file the tree is stored in
     private let file: FileHandle
     
+    /// A JSON encoder
     private let encoder = JSONEncoder()
     
+    /// A JSON decoder
     private let decoder = JSONDecoder()
     
+    /// Length of a 64-bit int + \n
     private let lengthOfRecordSize = 19
+    
+    /// Length of a 64-bit int + \n
     private let rootRecordPointerSize = 19
     
     public init(path: URL) throws {
@@ -48,6 +56,18 @@ where
         
     }
     
+    /// If the storage is empty, insert empty pointer to root element
+    public func initialize() throws {
+        if self.isEmpty() {
+            let zeroes = 0.toPaddedString() + "\n"
+            self.file.seek(toFileOffset: 0)
+            self.file.write(zeroes.data(using: .utf8)!)
+            
+        }
+        
+    }
+    
+    /// Find and load the root element of the tree
     public func loadRoot() throws -> RTree<T> {
         self.file.seek(toFileOffset: 0)
         
@@ -73,6 +93,7 @@ where
         
     }
     
+    /// Load the root element of the tree
     public func loadRTree(withOffset offset: UInt64) throws -> RTree<T> {
         self.file.seek(toFileOffset: offset)
         
@@ -89,7 +110,7 @@ where
         }
         
         let nodeData = self.file.readData(ofLength: recordSize)
-        
+                
         do {
             return try self.decoder.decode(RTree<T>.self, from: nodeData)
             
@@ -100,6 +121,7 @@ where
         
     }
     
+    /// Load a directory node
     public func loadDirectoryNodeData(withOffset offset: UInt64) throws -> DirectoryNodeData<T> {
         self.file.seek(toFileOffset: offset)
         
@@ -116,7 +138,7 @@ where
         }
         
         let nodeData = self.file.readData(ofLength: recordSize)
-        
+                
         do {
             var node = try self.decoder.decode(DirectoryNodeData<T>.self, from: nodeData)
             node.storage = self
@@ -130,6 +152,7 @@ where
         
     }
     
+    /// Load a spatial object
     public func loadSpatialObject<S>(withOffset offset: UInt64) throws -> S
     where
         S: SpatialObject
@@ -160,6 +183,7 @@ where
         
     }
     
+    /// Load an RTreeNode
     public func loadRTreeNode(withOffset offset: UInt64) throws -> RTreeNode<T> {
         do {
             return .directoryNode(try self.loadDirectoryNodeData(withOffset: offset))
@@ -172,6 +196,7 @@ where
         
     }
     
+    /// Save a directory node
     @discardableResult
     public func save(_ node: DirectoryNodeData<T>) throws -> UInt64 {
         let nodeOffset = self.file.seekToEndOfFile()
@@ -189,6 +214,7 @@ where
         
     }
     
+    /// Save a spatial object
     public func save<S>(_ spatialObject: S) throws -> UInt64
     where
         S: SpatialObject
@@ -208,6 +234,7 @@ where
         
     }
     
+    /// Saves an RTreeNode
     public func save(_ node: RTreeNode<T>) throws -> UInt64 {
         switch node {
         case .directoryNode(var data):
@@ -220,19 +247,15 @@ where
         
     }
     
+    /// Checks if the current file is empty
     public func isEmpty() -> Bool {
         return self.file.seekToEndOfFile() == 0
         
     }
     
+    /// Save an RTree
     @discardableResult
     public func save(_ tree: RTree<T>) throws -> UInt64 {
-        if self.isEmpty() {
-            let zeroes = 0.toPaddedString() + "\n"
-            self.file.write(zeroes.data(using: .utf8)!)
-            
-        }
-        
         let nodeOffset = self.file.seekToEndOfFile()
         
         let encodedTree = try self.encoder.encode(tree)
@@ -245,7 +268,7 @@ where
         self.file.write(dataToWrite)
         
         self.file.seek(toFileOffset: 0)
-        self.file.write(nodeOffset.toPaddedString().data(using: .utf8)!)
+        self.file.write((nodeOffset.toPaddedString() + "\n").data(using: .utf8)!)
         
         return nodeOffset
         

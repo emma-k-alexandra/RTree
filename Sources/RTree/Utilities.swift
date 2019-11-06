@@ -47,6 +47,7 @@ extension Int {
     
 }
 
+/// Some array methods to emulate Rust's Vec and array types, mostly mutating
 extension Array {
     mutating func mutatingAppend(_ array: inout Array) {
         self.append(contentsOf: array)
@@ -55,7 +56,7 @@ extension Array {
     }
     
     func splitAt(_ middle: Int) -> (Array, Array) {
-        let left = Array(self[...middle])
+        let left = Array(self[..<middle])
         let right = Array(self[middle...])
         
         return (left, right)
@@ -67,7 +68,7 @@ extension Array {
         
         let other = Array(self[at...])
         
-        self = Array(self[...at])
+        self = Array(self[..<at])
         
         return other
         

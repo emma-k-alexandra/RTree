@@ -11,12 +11,19 @@ public struct RTree<T>
 where
     T: SpatialObject
 {
+    /// The root node of this tree
     public var root: DirectoryNodeData<T>
+    
+    /// The number of elements in this tree
     public var size: UInt = 0
     
+    /// The storage path for this tree
     public let path: URL
     
+    /// The storage for this tree
     private let storage: Storage<T>
+    
+    /// The offset of the root node of this tree
     private var rootOffset: UInt64 = 0
     
     init(path: URL) throws {
@@ -39,12 +46,16 @@ where
 }
 
 extension RTree {
+    /// Inserts a new element into the tree.
+    ///
+    /// This will require `O(log(n))` operations on average, where n is the number of
+    /// elements contained in the tree.
     public mutating func insert(_ t: T) throws {
         var state = InsertionState(maxDepth: self.root.depth + 1)
         var insertionStack = [RTreeNode.leaf(t)]
         
         while let next = insertionStack.popLast() {
-            switch self.root.insert(next, state: &state)  {
+            switch try self.root.insert(next, state: &state)  {
             case .split(let node):
                 let newDepth = self.root.depth + 1
                 let options = self.root.options
@@ -74,11 +85,12 @@ extension RTree {
 }
 
 extension RTree {
+    /// Finds the nearest neighbor to the given point. `nil` if tree is empty.
     public mutating func nearestNeighbor(_ queryPoint: T.Point) -> T? {
         let result = self.root.nearestNeighbor(queryPoint)
         
         if result == nil, self.size > 0 {
-            var iterator =  self.nearestNeighborIterator(queryPoint)
+            var iterator = self.nearestNeighborIterator(queryPoint)
             
             return iterator.next()
             
@@ -96,10 +108,15 @@ extension RTree {
 }
 
 extension RTree {
+    /// Saves this tree to disk
     mutating func save() throws {
-        self.rootOffset = try self.root.save()
-        try storage.save(self)
+        if self.storage.isEmpty() {
+            try self.storage.initialize()
+            
+        }
         
+        self.rootOffset = try self.root.save()
+        try self.storage.save(self)
         
     }
     

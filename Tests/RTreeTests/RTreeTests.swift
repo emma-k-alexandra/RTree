@@ -4,12 +4,12 @@ import XCTest
 struct Point2D: PointN {
     typealias Scalar = Double
     
-    let x: Box<Scalar>
-    let y: Box<Scalar>
+    var x: Scalar
+    var y: Scalar
     
     init(x: Scalar, y: Scalar) {
-        self.x = Box(x)
-        self.y = Box(y)
+        self.x = x
+        self.y = y
         
     }
     
@@ -26,20 +26,20 @@ struct Point2D: PointN {
     subscript(index: Int) -> Scalar {
         get {
             if index == 0 {
-                return self.x.value
+                return self.x
                 
             } else {
-                return self.y.value
+                return self.y
                 
             }
             
         }
         set(newValue) {
             if index == 0 {
-                self.x.value = newValue
+                self.x = newValue
                 
             } else {
-                self.y.value = newValue
+                self.y = newValue
                 
             }
              
@@ -51,7 +51,7 @@ struct Point2D: PointN {
 
 extension Point2D: Equatable {
     static func == (lhs: Point2D, rhs: Point2D) -> Bool {
-        lhs.x.value == rhs.x.value && lhs.y.value == rhs.y.value
+        lhs.x == rhs.x && lhs.y == rhs.y
         
     }
     
@@ -69,7 +69,7 @@ struct Element: SpatialObject {
     }
     
     func distanceSquared(point: Point2D) -> Double {
-        pow(self.point.x.value, 2) + pow(self.point.y.value, 2)
+        pow(self.point.x, 2) + pow(self.point.y, 2)
         
     }
     
@@ -93,6 +93,8 @@ final class RTreeTests: XCTestCase {
         
         XCTAssertEqual(tree.size, 0)
         
+        try? FileManager.default.removeItem(at: path)
+        
     }
     
     func testInsert() throws {
@@ -104,6 +106,8 @@ final class RTreeTests: XCTestCase {
         try tree.insert(Element(point: Point2D(x: 0, y: 0)))
         try tree.insert(Element(point: Point2D(x: 1, y: 1)))
         
+        try? FileManager.default.removeItem(at: path)
+        
     }
     
     func testLotsOfInserts() throws {
@@ -112,10 +116,12 @@ final class RTreeTests: XCTestCase {
         
         var tree = try RTree<Element>(path: path)
         
-        for i in 2..<200 {
+        for i in 0..<200 {
             try tree.insert(Element(point: Point2D(x: Double(i), y: Double(i))))
             
         }
+        
+        try? FileManager.default.removeItem(at: path)
         
     }
     
@@ -132,6 +138,8 @@ final class RTreeTests: XCTestCase {
         try tree.insert(threethree)
         
         XCTAssertEqual(tree.nearestNeighbor(zerozero.point)!, oneone)
+        
+        try? FileManager.default.removeItem(at: path)
         
     }
     

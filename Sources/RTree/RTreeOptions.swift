@@ -7,9 +7,15 @@
 
 import Foundation
 
+/// Options for this tree
 public struct RTreeOptions: Codable {
+    /// The maximum size of a node in this tree
     public let maxSize: Int
+    
+    /// The minimum size of a non-root node in this tree
     public let minSize: Int
+    
+    /// idk what this is tbh, needs to be smaller than maxSize
     public let reinsertionCount: Int
     
     public init() {

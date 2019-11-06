@@ -7,15 +7,27 @@
 
 import Foundation
 
+/// A node of the tree that contains other nodes
 public struct DirectoryNodeData<T>
 where
     T: SpatialObject
 {
+    /// MBR of this node
     public var boundingBox: BoundingRectangle<T.Point>?
+    
+    /// The nodes this node contains
     public var children: [RTreeNode<T>]?
+    
+    /// Storage offsets of the children stored in this node
     private var childrenOffsets = [UInt64]()
+    
+    /// The depth of this node
     public var depth: Int = 1
+    
+    /// Sizing options for this node
     public var options: RTreeOptions = RTreeOptions()
+    
+    /// The storage engine for this node
     public var storage: Storage<T>?
     
     public init(storage: Storage<T>) {
@@ -42,6 +54,8 @@ where
 }
 
 extension DirectoryNodeData {
+    
+    /// Creates a new parent for the provided nodes
     public static func newParent(_ children: [RTreeNode<T>], depth: Int, options: RTreeOptions, storage: Storage<T>) -> DirectoryNodeData<T> {
         var result = DirectoryNodeData(
             boundingBox: nil,
@@ -56,15 +70,14 @@ extension DirectoryNodeData {
         
     }
     
+    /// Updates the bounding box of this node
     public mutating func updateMBR() {
         if self.children == nil {
             try! self.load()
             
         }
         
-        let children = self.children!
-        
-        guard let first = children.first else {
+        guard let first = self.children!.first else {
             self.boundingBox = nil
             return
             
@@ -72,7 +85,7 @@ extension DirectoryNodeData {
         
         var newMBR = first.minimumBoundingRectangle()
         
-        for child in children[1...] {
+        for child in self.children![1...] {
             newMBR.add(child.minimumBoundingRectangle())
             
         }
@@ -81,6 +94,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Updates MBR of this node with another bounding box
     mutating func updateMBRWithElement(_ elementBoundingBox: BoundingRectangle<T.Point>) {
         if let _ = self.boundingBox {
             self.boundingBox!.add(elementBoundingBox)
@@ -92,26 +106,30 @@ extension DirectoryNodeData {
         
     }
     
-    mutating func insert(_ t: RTreeNode<T>, state: inout InsertionState) -> InsertionResult<T>
+    /// Inserts an element into this node
+    public mutating func insert(_ t: RTreeNode<T>, state: inout InsertionState) throws -> InsertionResult<T>
     {
         self.updateMBRWithElement(t.minimumBoundingRectangle())
         
         if t.depth() + 1 == self.depth {
             var newChildren = [t]
             
-            
             self.addChildren(&newChildren)
+            self.childrenOffsets = []
             return self.resolveOverflow(&state)
             
         }
 
-        var follow = self.chooseSubtree(t)
-        let expand = follow.insert(t, state: &state)
+        var (follow, index) = self.chooseSubtree(t)
+        let expand = try follow.insert(t, state: &state)
+        self.children![index] = .directoryNode(follow)
         
         switch expand {
         case .split(let child):
             var children = [child]
+            
             self.addChildren(&children)
+            self.childrenOffsets = []
             return self.resolveOverflow(&state)
             
         case .reinsert:
@@ -125,6 +143,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Handles this node containing too many children, as defined by the current options
     mutating func resolveOverflow(_ state: inout InsertionState) -> InsertionResult<T> {
         if self.children == nil {
             try! self.load()
@@ -133,7 +152,6 @@ extension DirectoryNodeData {
         
         if self.children!.count > self.options.maxSize {
             if state.didReinsert(depth: self.depth) {
-                
                 // We did already reinsert on that level - split this node
                 let offsplit = self.split()
                 
@@ -159,6 +177,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Splits this node into a new node
     mutating func split() -> RTreeNode<T> {
         if self.children == nil {
             try! self.load()
@@ -222,6 +241,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Reinserts an element into this node
     mutating func reinsert() -> [RTreeNode<T>] {
         if self.children == nil {
             try! self.load()
@@ -234,16 +254,11 @@ extension DirectoryNodeData {
             let lCenter = l.minimumBoundingRectangle().center()
             let rCenter = r.minimumBoundingRectangle().center()
             
-            let result = lCenter.subtract(center).lengthSquared() < rCenter.subtract(center).lengthSquared()
-            
-            
-            return result
+            return lCenter.subtract(center).lengthSquared() < rCenter.subtract(center).lengthSquared()
             
         }
         
-        let numChildren = self.children!.count
-        
-        let result = self.children!.splitOff(at: numChildren - self.options.reinsertionCount)
+        let result = self.children!.splitOff(at: self.children!.count - self.options.reinsertionCount)
         
         self.updateMBR()
         
@@ -251,6 +266,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Determines the split axis of this node
     mutating func getSplitAxis() -> Int {
         if self.children == nil {
             try! self.load()
@@ -297,7 +313,8 @@ extension DirectoryNodeData {
         
     }
     
-    mutating func chooseSubtree(_ node: RTreeNode<T>) -> DirectoryNodeData<T> {
+    /// Selects a subtree to insert into
+    mutating func chooseSubtree(_ node: RTreeNode<T>) -> (DirectoryNodeData<T>, Int) {
         assert(self.depth > 1, "Cannot choose subtree when depth is 1")
         let insertionMBR = node.minimumBoundingRectangle()
         var inclusionCount = 0
@@ -310,9 +327,7 @@ extension DirectoryNodeData {
             
         }
         
-        let children = self.children!
-        
-        for (index, child) in children.enumerated() {
+        for (index, child) in self.children!.enumerated() {
             let MBR = child.minimumBoundingRectangle()
             
             if MBR.contains(rectangle: insertionMBR) {
@@ -330,10 +345,11 @@ extension DirectoryNodeData {
         }
         
         if inclusionCount == 0 {
+            // No inclusion found, subtree depends on overlap and area increase
             let allLeaves = self.depth <= 2
             var min: (T.Point.Scalar, T.Point.Scalar, T.Point.Scalar) = (0, 0, 0)
             
-            for (index, child1) in children.enumerated() {
+            for (index, child1) in self.children!.enumerated() {
                 let MBR = child1.minimumBoundingRectangle()
                 var newMBR = MBR
                 
@@ -342,14 +358,17 @@ extension DirectoryNodeData {
                 var overlapIncrease: T.Point.Scalar = 0
                 
                 if allLeaves {
+                    // Calculate minimal overlap increase
                     var overlap: T.Point.Scalar = 0
                     var newOverlap: T.Point.Scalar = 0
                     
                     for child2 in self.children! {
                         if !(child1 == child2) {
                             let childMBR = child2.minimumBoundingRectangle()
+                            
                             overlap += MBR.intersect(childMBR).area()
                             newOverlap += newMBR.intersect(childMBR).area()
+                            
                         }
                         
                     }
@@ -357,6 +376,7 @@ extension DirectoryNodeData {
                     overlapIncrease = newOverlap - overlap
                     
                 } else {
+                     // Don't calculate overlap increase if not all children are leaves
                     overlapIncrease = 0
                     
                 }
@@ -375,9 +395,9 @@ extension DirectoryNodeData {
             
         }
         
-        switch children[minIndex] {
+        switch self.children![minIndex] {
         case .directoryNode(let data):
-            return data
+            return (data, minIndex)
             
         case .leaf:
             fatalError("No leaves at this depth")
@@ -386,6 +406,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Adds new children to this node (mutating the provided array
     public mutating func addChildren(_ newChildren: inout [RTreeNode<T>]) {
         if self.children == nil {
             try! self.load()
@@ -419,6 +440,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Extends the given heap
     func extend(_ heap: inout Heap<RTreeNodeDistanceWrapper<T>>, children: [RTreeNode<T>], queryPoint: T.Point, pruneDistanceOption: inout T.Point.Scalar?) {
         for child in children {
             var distance: T.Point.Scalar = 0
@@ -458,7 +480,8 @@ extension DirectoryNodeData {
         
     }
     
-    mutating func nearestNeighbor(_ point: T.Point) -> T? {
+    /// Determines the nearest neighbor to a given point
+    public mutating func nearestNeighbor(_ point: T.Point) -> T? {
         if self.children == nil {
             try! self.load()
             
@@ -493,6 +516,7 @@ extension DirectoryNodeData {
 }
 
 extension DirectoryNodeData {
+    /// Loads this node from the current storage
     public mutating func load() throws {
         guard let storage = self.storage else {
             throw RTreeError.nodeHasNoStorage
@@ -506,6 +530,7 @@ extension DirectoryNodeData {
         
     }
     
+    /// Saves this node to the current storage
     public mutating func save() throws -> UInt64 {
         guard let storage = self.storage else {
             throw RTreeError.nodeHasNoStorage
@@ -551,7 +576,7 @@ extension DirectoryNodeData: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.boundingBox = try container.decode(BoundingRectangle<T.Point>.self, forKey: .boundingBox)
+        self.boundingBox = try container.decode(BoundingRectangle<T.Point>?.self, forKey: .boundingBox)
         self.depth = try container.decode(Int.self, forKey: .depth)
         self.options = try container.decode(RTreeOptions.self, forKey: .options)
         

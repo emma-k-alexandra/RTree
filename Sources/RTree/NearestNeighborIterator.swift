@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// An iterator for the nearest neighbors to a queryPoint
 public struct NearestNeighborIterator<T>
 where
     T: SpatialObject
@@ -32,6 +33,7 @@ where
 }
 
 extension NearestNeighborIterator {
+    /// Extends the current heap with the provided children
     mutating func extendHeap(_ children: [RTreeNode<T>]) {
         let distanceWrappers = children.map({ (child) -> RTreeNodeDistanceWrapper<T> in
             var distance: T.Point.Scalar = 0

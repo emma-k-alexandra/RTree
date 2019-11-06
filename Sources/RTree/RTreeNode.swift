@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// If a node is a leaf or a directory node
 public enum RTreeNode<T>
 where
     T: SpatialObject
@@ -16,6 +17,7 @@ where
 }
 
 extension RTreeNode {
+    /// The MBR for this node
     public func minimumBoundingRectangle() -> BoundingRectangle<T.Point> {
         switch self {
         case .directoryNode(let data):
@@ -28,6 +30,7 @@ extension RTreeNode {
         
     }
     
+    /// The depth of this node
     public func depth() -> Int {
         switch self {
         case .directoryNode(let data):

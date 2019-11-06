@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Stores the reinsertion state
 public struct InsertionState {
     public var reinsertions: [Bool]
     
@@ -31,6 +32,7 @@ extension InsertionState {
     
 }
 
+/// The result of an insertion
 public enum InsertionResult<T>
 where
     T: SpatialObject

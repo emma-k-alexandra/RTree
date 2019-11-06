@@ -7,17 +7,28 @@
 
 import Foundation
 
+/// An axis aligned minimal bounding rectangle (MBR)
+/// An axis aligned minimal bounding rectangle is the smallest rectangle that completely
+/// surrounds an object and is aligned along all axes. The vector type `V`'s dimension
+/// determines if this is a rectangle, a box or a higher dimensional volume.
 public struct BoundingRectangle<V>: Codable
 where
     V: PointN
 {
+    /// Lower range of this MBR
     public var lower: V
+    
+    /// Upper range of this MBR
     public var upper: V
     
+    /// Creates a bounding rectangle that contains exactly one point.
+    ///
+    /// This will create a bounding rectangle with `lower == upper == point`.
     public func from(point: V) -> Self {
         BoundingRectangle(lower: self.lower, upper: self.upper)
     }
     
+    /// Create a bounding rectangle from a set of points
     public func from(points: AnyIterator<V>) -> Self {
         guard let firstElement = points.next() else {
             fatalError("Provided iterator of points was empty.")
@@ -35,11 +46,13 @@ where
         
     }
     
+    /// Creates a bounding rectangle that contains two points
     public func fromCorners(_ firstCorner: V, _ secondCorner: V) -> BoundingRectangle<V> {
         BoundingRectangle(lower: firstCorner.minPoint(secondCorner), upper: firstCorner.maxPoint(secondCorner))
         
     }
     
+    /// Checks if a point is contained within the bounding rectangle
     public func contains(point: V) -> Bool {
         self.lower.allComponentWise(point) { l, r in
             l <= r
@@ -50,6 +63,7 @@ where
         }
     }
     
+    /// Check if another bounding rectangle is completely contained within this rectangle
     public func contains(rectangle: BoundingRectangle<V>) -> Bool {
         self.lower.allComponentWise(rectangle.lower) { l, r in
             l <= r
@@ -61,18 +75,28 @@ where
         
     }
     
+    /// Enlarges this bounding rectangle to contain a point.
+    /// If the point is already contained, nothing will be changed.
+    /// Otherwise, this will enlarge `self` to be just large enough
+    /// to contain the new point.
     public mutating func add(_ point: V) {
         self.lower = self.lower.minPoint(point)
         self.upper = self.upper.maxPoint(point)
         
     }
     
+    /// Enlarges this bounding rectangle to contain a rectangle.
+    ///
+    /// If the rectangle is already contained, nothing will be changed.
+    /// Otherwise, this will enlarge `self` to be just large enough
+    /// to contain the new rectangle.
     public mutating func add(_ rectangle: BoundingRectangle<V>) {
         self.lower = self.lower.minPoint(rectangle.lower)
         self.upper = self.upper.maxPoint(rectangle.upper)
         
     }
     
+    /// Returns the rectangle's area
     public func area() -> V.Scalar {
         let diagonal = self.upper.subtract(self.lower)
         return diagonal.fold(1) { (acc, value) -> V.Scalar in
@@ -82,6 +106,7 @@ where
         
     }
     
+    /// Returns half of the rectangle's margin, thus `width + height`
     public func halfMargin() -> V.Scalar {
         let diagonal = self.upper.subtract(self.lower)
         
@@ -92,19 +117,25 @@ where
         
     }
     
+    /// Returns the rectangle's center
     public func center() -> V {
-        self.lower.add(self.upper)
         let result = self.lower.add(self.upper.subtract(self.lower).divide(2))
         
         return result
         
     }
     
+    /// Returns the intersection of this and another bounding rectangle.
+    ///
+    /// If the rectangles do not intersect, a bounding rectangle with an area and
+    /// margin of zero is returned.
     public func intersect(_ other: BoundingRectangle<V>) -> BoundingRectangle<V> {
         BoundingRectangle(lower: self.lower.maxPoint(other.lower), upper: self.upper.minPoint(other.upper))
         
     }
     
+    /// Returns true if this and another bounding rectangle intersect each other.
+    /// If the rectangles just "touch" each other at one side, true is returned.
     public func intersects(_ other: BoundingRectangle<V>) -> Bool {
         self.lower.allComponentWise(other.upper) { (l, r) -> Bool in
             l <= r
