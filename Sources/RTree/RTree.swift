@@ -26,7 +26,7 @@ where
     /// The offset of the root node of this tree
     private var rootOffset: UInt64 = 0
     
-    init(path: URL) throws {
+    public init(path: URL) throws {
         let storage = try Storage<T>(path: path)
         
         if storage.isEmpty() {
