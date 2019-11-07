@@ -21,6 +21,12 @@ where
     /// Upper range of this MBR
     public var upper: V
     
+    public init(lower: V, upper: V) {
+        self.lower = lower
+        self.upper = upper
+        
+    }
+    
     /// Creates a bounding rectangle that contains exactly one point.
     ///
     /// This will create a bounding rectangle with `lower == upper == point`.
