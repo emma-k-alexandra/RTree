@@ -20,19 +20,28 @@ where
     /// The storage path for this tree
     public let path: URL
     
+    /// If this tree is read only or is available for inserts
+    public let isReadOnly: Bool
+    
     /// The storage for this tree
     private let storage: Storage<T>
     
     /// The offset of the root node of this tree
     private var rootOffset: UInt64 = 0
     
-    public init(path: URL) throws {
-        let storage = try Storage<T>(path: path)
+    public init(path: URL, readOnly: Bool = false) throws {
+        let storage = try Storage<T>(path: path, readOnly: readOnly)
         
         if storage.isEmpty() {
+            if readOnly {
+                throw RTreeError.treeMarkedReadOnly
+                
+            }
+            
             self.path = path
             self.storage = storage
             self.root = DirectoryNodeData(storage: storage)
+            self.isReadOnly = readOnly
             
             try self.save()
             
@@ -51,6 +60,11 @@ extension RTree {
     /// This will require `O(log(n))` operations on average, where n is the number of
     /// elements contained in the tree.
     public mutating func insert(_ t: T) throws {
+        if self.isReadOnly {
+            throw RTreeError.treeMarkedReadOnly
+            
+        }
+        
         var state = InsertionState(maxDepth: self.root.depth + 1)
         var insertionStack = [RTreeNode.leaf(t)]
         
@@ -154,6 +168,8 @@ extension RTree: Codable {
         }
         
         self.root = try self.storage.loadDirectoryNodeData(withOffset: rootNodeOffset)
+        
+        self.isReadOnly = false
         
     }
     

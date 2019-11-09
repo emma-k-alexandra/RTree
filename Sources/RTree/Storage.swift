@@ -15,6 +15,9 @@ where
     /// The location to store the tree
     public let path: URL
     
+    /// If this RTree is read only or allows for writing
+    public let readOnly: Bool
+    
     /// The file the tree is stored in
     private let file: FileHandle
     
@@ -30,13 +33,26 @@ where
     /// Length of a 64-bit int + \n
     private let rootRecordPointerSize = 19
     
-    public init(path: URL) throws {
+    public init(path: URL, readOnly: Bool = false) throws {
         self.path = path
+        self.readOnly = readOnly
         
         do {
-            self.file = try FileHandle(forUpdating: self.path)
+            if self.readOnly {
+                self.file = try FileHandle(forReadingFrom: self.path)
+                
+            } else {
+                self.file = try FileHandle(forUpdating: self.path)
+                
+            }
+            
             
         } catch {
+            if self.readOnly {
+                throw StorageError.storageMarkedReadOnly
+                
+            }
+            
             do {
                 try "".write(to: self.path, atomically: true, encoding: .utf8)
                 
@@ -278,4 +294,5 @@ where
 
 public enum StorageError: Error {
     case unableToCreateStorage
+    case storageMarkedReadOnly
 }

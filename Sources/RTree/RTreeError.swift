@@ -15,4 +15,5 @@ public enum RTreeError: Error {
     case invalidRecordSize
     case invalidRootRecordOffset
     case invalidRootRecord
+    case treeMarkedReadOnly
 }
