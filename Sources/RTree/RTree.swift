@@ -21,7 +21,7 @@ where
     public var path: URL? = nil
     
     /// If this tree is read only or is available for inserts
-    public let isReadOnly: Bool
+    public var isReadOnly: Bool
     
     /// The storage for this tree
     private var storage: Storage<T>? = nil
@@ -47,6 +47,7 @@ where
             
         } else {
             self = try storage.loadRoot()
+            self.isReadOnly = readOnly
             
         }
         
