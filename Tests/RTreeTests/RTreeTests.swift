@@ -64,12 +64,12 @@ struct Element: SpatialObject {
     let hello = "world"
     
     func minimumBoundingRectangle() -> BoundingRectangle<Point2D> {
-        return BoundingRectangle(lower: self.point, upper: self.point)
+        BoundingRectangle(lower: self.point, upper: self.point)
         
     }
     
     func distanceSquared(point: Point2D) -> Double {
-        pow(self.point.x, 2) + pow(self.point.y, 2)
+        pow(point.x - self.point.x, 2) + pow(point.y - self.point.y, 2)
         
     }
     

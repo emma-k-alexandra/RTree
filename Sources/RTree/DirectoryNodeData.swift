@@ -458,6 +458,7 @@ extension DirectoryNodeData {
             if let pruneDistance = pruneDistanceOption {
                 if distance > pruneDistance {
                     doPrune = true
+                    
                 } else {
                     let newPruneDistance = child.minimumBoundingRectangle().minMaxDistanceSquared(queryPoint)
                     pruneDistanceOption = minInline(pruneDistance, newPruneDistance)

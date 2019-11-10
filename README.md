@@ -25,7 +25,7 @@ RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-
 ### Swift Package Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.0.3")
+    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.0.4")
 ]
 ```
 
@@ -112,12 +112,12 @@ struct Element: SpatialObject {
     let hello = "world"
     
     func minimumBoundingRectangle() -> BoundingRectangle<Point2D> {
-        return BoundingRectangle(lower: self.point, upper: self.point)
+        BoundingRectangle(lower: self.point, upper: self.point)
         
     }
     
     func distanceSquared(point: Point2D) -> Double {
-        pow(self.point.x, 2) + pow(self.point.y, 2)
+        pow(point.x - self.point.x, 2) + pow(point.y - self.point.y, 2)
         
     }
     
