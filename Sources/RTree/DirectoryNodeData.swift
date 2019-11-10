@@ -488,7 +488,7 @@ extension DirectoryNodeData {
         }
         
         var smallestMinMax: T.Point.Scalar? = nil
-        var heap = Heap<RTreeNodeDistanceWrapper<T>>(sort: <)
+        var heap = Heap<RTreeNodeDistanceWrapper<T>>(sort: >)
         
         self.extend(&heap, children: self.children!, queryPoint: point, pruneDistanceOption: &smallestMinMax)
         
