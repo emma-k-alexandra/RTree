@@ -137,7 +137,7 @@ final class RTreeTests: XCTestCase {
         try tree.insert(oneone)
         try tree.insert(threethree)
         
-        XCTAssertEqual(tree.nearestNeighbor(zerozero.point)!, oneone)
+        XCTAssertEqual(try tree.nearestNeighbor(zerozero.point)!, oneone)
         
         try? FileManager.default.removeItem(at: path)
         

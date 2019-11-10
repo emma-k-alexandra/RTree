@@ -12,19 +12,19 @@ where
     T: SpatialObject
 {
     /// The root node of this tree
-    public var root: DirectoryNodeData<T>
+    public var root: DirectoryNodeData<T>? = nil
     
     /// The number of elements in this tree
-    public var size: UInt = 0
+    public var size: Int = 0
     
     /// The storage path for this tree
-    public let path: URL
+    public var path: URL? = nil
     
     /// If this tree is read only or is available for inserts
     public let isReadOnly: Bool
     
     /// The storage for this tree
-    private let storage: Storage<T>
+    private var storage: Storage<T>? = nil
     
     /// The offset of the root node of this tree
     private var rootOffset: UInt64 = 0
@@ -65,20 +65,25 @@ extension RTree {
             
         }
         
-        var state = InsertionState(maxDepth: self.root.depth + 1)
+        if self.root == nil {
+            try self.load()
+            
+        }
+        
+        var state = InsertionState(maxDepth: self.root!.depth + 1)
         var insertionStack = [RTreeNode.leaf(t)]
         
         while let next = insertionStack.popLast() {
-            switch try self.root.insert(next, state: &state)  {
+            switch try self.root!.insert(next, state: &state)  {
             case .split(let node):
-                let newDepth = self.root.depth + 1
-                let options = self.root.options
-                let oldRoot = self.root
+                let newDepth = self.root!.depth + 1
+                let options = self.root!.options
+                let oldRoot = self.root!
                 
                 self.root = DirectoryNodeData(depth: newDepth, options: options, storage: oldRoot.storage)
                 
                 var newChildren = [RTreeNode.directoryNode(oldRoot), node]
-                self.root.addChildren(&newChildren)
+                self.root!.addChildren(&newChildren)
                 
             case .reinsert(let nodes):
                 insertionStack.append(contentsOf: nodes)
@@ -100,11 +105,16 @@ extension RTree {
 
 extension RTree {
     /// Finds the nearest neighbor to the given point. `nil` if tree is empty.
-    public mutating func nearestNeighbor(_ queryPoint: T.Point) -> T? {
-        let result = self.root.nearestNeighbor(queryPoint)
+    public mutating func nearestNeighbor(_ queryPoint: T.Point) throws -> T? {
+        if self.root == nil {
+            try self.load()
+            
+        }
+        
+        let result = self.root!.nearestNeighbor(queryPoint)
         
         if result == nil, self.size > 0 {
-            var iterator = self.nearestNeighborIterator(queryPoint)
+            var iterator = try self.nearestNeighborIterator(queryPoint)
             
             return iterator.next()
             
@@ -114,8 +124,13 @@ extension RTree {
         
     }
     
-    public func nearestNeighborIterator(_ queryPoint: T.Point) -> NearestNeighborIterator<T> {
-        NearestNeighborIterator(root: self.root, queryPoint: queryPoint)
+    public mutating func nearestNeighborIterator(_ queryPoint: T.Point) throws -> NearestNeighborIterator<T> {
+        if self.root == nil {
+            try self.load()
+            
+        }
+        
+        return NearestNeighborIterator(root: self.root!, queryPoint: queryPoint)
         
     }
     
@@ -124,13 +139,33 @@ extension RTree {
 extension RTree {
     /// Saves this tree to disk
     mutating func save() throws {
-        if self.storage.isEmpty() {
-            try self.storage.initialize()
+        guard let storage = self.storage else {
+            throw RTreeError.storageNotPresent
             
         }
         
-        self.rootOffset = try self.root.save()
-        try self.storage.save(self)
+        if self.root == nil {
+            try self.load()
+            
+        }
+        
+        if storage.isEmpty() {
+            try storage.initialize()
+            
+        }
+        
+        self.rootOffset = try self.root!.save()
+        try storage.save(self)
+        
+    }
+    
+    mutating func load() throws {
+        guard let storage = self.storage else {
+            throw RTreeError.storageNotPresent
+            
+        }
+        
+        self.root = try storage.loadDirectoryNodeData(withOffset: self.rootOffset)
         
     }
     
@@ -140,7 +175,6 @@ extension RTree: Codable {
     enum CodingKeys: CodingKey {
         case root
         case size
-        case path
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -148,17 +182,13 @@ extension RTree: Codable {
         
         try container.encode(self.rootOffset.toPaddedString(), forKey: .root)
         try container.encode(self.size, forKey: .size)
-        try container.encode(self.path, forKey: .path)
         
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.size = try container.decode(UInt.self, forKey: .size)
-        self.path = try container.decode(URL.self, forKey: .path)
-        
-        self.storage = try Storage(path: self.path)
+        self.size = try container.decode(Int.self, forKey: .size)
         
         let rootNodeOffsetString = try container.decode(String.self, forKey: .root)
         
@@ -167,7 +197,7 @@ extension RTree: Codable {
             
         }
         
-        self.root = try self.storage.loadDirectoryNodeData(withOffset: rootNodeOffset)
+        self.rootOffset = rootNodeOffset
         
         self.isReadOnly = false
         

@@ -25,12 +25,12 @@ RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-
 ### Swift Package Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "1.1.0")
+    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.0.0")
 ]
 ```
 
 ## Disclaimer & Warnings
-BTree performs nearest neighbor searches at the expected speed of a R*-Tree. RTree uses far more space than expected on disk, and inserts are extemely inefficient. RTree does not currently support deletion or updating of records. 
+RTree performs nearest neighbor searches at the expected speed of a R*-Tree. RTree uses far more space than expected on disk, and inserts are extemely inefficient. RTree does not currently support deletion or updating of records. 
 
 ## Design
 This R*-Tree is designed to use exclusively Swift, and provide a general interface for doing nearest neighbor queries on N-dimensional objects.

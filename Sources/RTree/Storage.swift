@@ -46,7 +46,6 @@ where
                 
             }
             
-            
         } catch {
             if self.readOnly {
                 throw StorageError.storageMarkedReadOnly
