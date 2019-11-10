@@ -160,12 +160,12 @@ extension RTree {
     }
     
     mutating func load() throws {
-        guard let storage = self.storage else {
-            throw RTreeError.storageNotPresent
+        if self.storage == nil {
+            self.storage = try Storage<T>(path: self.path!, readOnly: self.isReadOnly)
             
         }
         
-        self.root = try storage.loadDirectoryNodeData(withOffset: self.rootOffset)
+        self.root = try self.storage!.loadDirectoryNodeData(withOffset: self.rootOffset)
         
     }
     

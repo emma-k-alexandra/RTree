@@ -99,7 +99,10 @@ where
         }
         
         do {
-            return try self.loadRTree(withOffset: rootRecordOffset)
+            var tree = try self.loadRTree(withOffset: rootRecordOffset)
+            tree.path = self.path
+            
+            return tree
             
         } catch {
             throw RTreeError.invalidRootRecord
