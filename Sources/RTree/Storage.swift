@@ -19,7 +19,11 @@ where
     public let readOnly: Bool
     
     /// The file the tree is stored in
-    private let file: FileHandle
+    private var file: FileHandle
+    
+    private var writeFilePath: URL
+    
+    private var writeFile: FileHandle? = nil
     
     /// A JSON encoder
     private let encoder = JSONEncoder()
@@ -35,6 +39,7 @@ where
     
     public init(path: URL, readOnly: Bool = false) throws {
         self.path = path
+        self.writeFilePath = URL(string: "\(path.absoluteString).tmp")!
         self.readOnly = readOnly
         
         do {
@@ -43,6 +48,10 @@ where
                 
             } else {
                 self.file = try FileHandle(forUpdating: self.path)
+                
+                try "".write(to: self.writeFilePath, atomically: true, encoding: .utf8)
+                self.writeFile = try FileHandle(forUpdating: self.writeFilePath)
+                
                 
             }
             
@@ -54,8 +63,10 @@ where
             
             do {
                 try "".write(to: self.path, atomically: true, encoding: .utf8)
-                
                 self.file = try FileHandle(forUpdating: self.path)
+
+                try "".write(to: self.writeFilePath, atomically: true, encoding: .utf8)
+                self.writeFile = try FileHandle(forUpdating: self.writeFilePath)
                 
             } catch {
                 throw StorageError.unableToCreateStorage
@@ -69,14 +80,16 @@ where
     deinit {
         self.file.closeFile()
         
+        try! FileManager.default.removeItem(at: self.writeFilePath)
+        
     }
     
     /// If the storage is empty, insert empty pointer to root element
     public func initialize() throws {
         if self.isEmpty() {
             let zeroes = 0.toPaddedString() + "\n"
-            self.file.seek(toFileOffset: 0)
-            self.file.write(zeroes.data(using: .utf8)!)
+            self.writeFile!.seek(toFileOffset: 0)
+            self.writeFile!.write(zeroes.data(using: .utf8)!)
             
         }
         
@@ -217,7 +230,12 @@ where
     /// Save a directory node
     @discardableResult
     public func save(_ node: DirectoryNodeData<T>) throws -> UInt64 {
-        let nodeOffset = self.file.seekToEndOfFile()
+        guard let writeFile = self.writeFile else {
+            throw StorageError.storageMarkedReadOnly
+            
+        }
+        
+        let nodeOffset = writeFile.seekToEndOfFile()
         
         let encodedNode = try self.encoder.encode(node)
         
@@ -226,7 +244,7 @@ where
         dataToWrite.append(encodedNode)
         dataToWrite.append("\n".data(using: .utf8)!)
         
-        self.file.write(dataToWrite)
+        writeFile.write(dataToWrite)
         
         return nodeOffset
         
@@ -237,7 +255,12 @@ where
     where
         S: SpatialObject
     {
-        let nodeOffset = self.file.seekToEndOfFile()
+        guard let writeFile = self.writeFile else {
+            throw StorageError.storageMarkedReadOnly
+            
+        }
+        
+        let nodeOffset = writeFile.seekToEndOfFile()
         
         let encodedNode = try self.encoder.encode(spatialObject)
         
@@ -246,7 +269,7 @@ where
         dataToWrite.append(encodedNode)
         dataToWrite.append("\n".data(using: .utf8)!)
         
-        self.file.write(dataToWrite)
+        writeFile.write(dataToWrite)
         
         return nodeOffset
         
@@ -265,16 +288,15 @@ where
         
     }
     
-    /// Checks if the current file is empty
-    public func isEmpty() -> Bool {
-        return self.file.seekToEndOfFile() == 0
-        
-    }
-    
     /// Save an RTree
     @discardableResult
     public func save(_ tree: RTree<T>) throws -> UInt64 {
-        let nodeOffset = self.file.seekToEndOfFile()
+        guard let writeFile = self.writeFile else {
+            throw StorageError.storageMarkedReadOnly
+            
+        }
+        
+        let nodeOffset = writeFile.seekToEndOfFile()
         
         let encodedTree = try self.encoder.encode(tree)
         
@@ -283,12 +305,28 @@ where
         dataToWrite.append(encodedTree)
         dataToWrite.append("\n".data(using: .utf8)!)
         
-        self.file.write(dataToWrite)
+        writeFile.write(dataToWrite)
         
-        self.file.seek(toFileOffset: 0)
-        self.file.write((nodeOffset.toPaddedString() + "\n").data(using: .utf8)!)
+        writeFile.seek(toFileOffset: 0)
+        writeFile.write((nodeOffset.toPaddedString() + "\n").data(using: .utf8)!)
+        
+        try FileManager.default.removeItem(at: self.path)
+        try FileManager.default.copyItem(at: self.writeFilePath, to: self.path)
+        try FileManager.default.removeItem(at: self.writeFilePath)
+        
+        self.file = try FileHandle(forUpdating: self.path)
+        
+        try "".write(to: self.writeFilePath, atomically: true, encoding: .utf8)
+        self.writeFile = try FileHandle(forUpdating: self.writeFilePath)
+        try self.initialize()
         
         return nodeOffset
+        
+    }
+    
+    /// Checks if the current file is empty
+    public func isEmpty() -> Bool {
+        return self.writeFile!.seekToEndOfFile() == 0
         
     }
     
