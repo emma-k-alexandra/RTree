@@ -25,7 +25,7 @@ RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-
 ### Swift Package Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.1.1")
+    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.1.2")
 ]
 ```
 

@@ -80,7 +80,10 @@ where
     deinit {
         self.file.closeFile()
         
-        try! FileManager.default.removeItem(at: self.writeFilePath)
+        if let _ = self.writeFile {
+            try? FileManager.default.removeItem(at: self.writeFilePath)
+            
+        }
         
     }
     
