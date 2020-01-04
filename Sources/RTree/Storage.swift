@@ -326,7 +326,7 @@ where
     
     /// Checks if the current file is empty
     public func isEmpty() -> Bool {
-        return self.writeFile!.seekToEndOfFile() == 0
+        return self.file.seekToEndOfFile() == 0
         
     }
     
