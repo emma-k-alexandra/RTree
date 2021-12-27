@@ -1,8 +1,8 @@
 # RTree
 
-RTree is an on-disk, [`Codable`](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) R*-Tree.
+RTree is an on-disk, [`Codable`](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) R\*-Tree for searching.
 
-RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-Dimentional R*-Tree, modified to store the tree on disk rather than in memory. 
+RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-Dimentional R\*-Tree, modified to store the tree on disk rather than in memory. It only can perform inserts and nearest neighbor queries.
 
 ## Contents
 - [Requirements](#requirements)
@@ -19,13 +19,18 @@ RTree is a port of the Rust crate [`Spade`](https://crates.io/crates/spade)'s N-
 
 ## Requirements
 - Swift 5.1+
+- iOS 13, watchOS 6, macOS 10.15, tvOS 15
 
 ## Installation
 
 ### Swift Package Manager
 ```swift
 dependencies: [
-    .package(url: "https://github.com/emma-k-alexandra/RTree.git", from: "2.1.2")
+    .package(
+        name: "RTree",
+        url: "https://github.com/emma-k-alexandra/RTree.git",
+        from: "2.2.0"
+    )
 ]
 ```
 
@@ -33,7 +38,7 @@ dependencies: [
 RTree performs nearest neighbor searches at the expected speed of a R*-Tree. RTree uses far more space than expected on disk, and inserts are extemely inefficient. RTree does not currently support deletion or updating of records. 
 
 ## Design
-This R*-Tree is designed to use exclusively Swift, and provide a general interface for doing nearest neighbor queries on N-dimensional objects.
+This R\*-Tree is designed to use exclusively Swift, and provide a general interface for doing nearest neighbor queries on N-dimensional objects.
 
 Expect to a implement your own `SpatialObject`-implementing structure and `PointN`-implementing vector type in order to use RTree. For an example, see `RTreeTests.swift` or [Usage](#usage)
 
@@ -132,7 +137,7 @@ extension Element: Equatable {
 }
 ```
 
-Then, I'm able to create an R*-Tree that stores `Elements` over `Point2D`:
+Then, I'm able to create an R\*-Tree that stores `Elements` over `Point2D`:
 
 ```swift
 var tree = try RTree<Element>(path: path)

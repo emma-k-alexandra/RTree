@@ -26,10 +26,10 @@ where
     private var writeFile: FileHandle? = nil
     
     /// A JSON encoder
-    private let encoder = JSONEncoder()
+    private let encoder: JSONEncoder
     
     /// A JSON decoder
-    private let decoder = JSONDecoder()
+    private let decoder: JSONDecoder
     
     /// Length of a 64-bit int + \n
     private let lengthOfRecordSize = 19
@@ -37,7 +37,14 @@ where
     /// Length of a 64-bit int + \n
     private let rootRecordPointerSize = 19
     
-    public init(path: URL, readOnly: Bool = false) throws {
+    public init(
+        path: URL,
+        readOnly: Bool = false,
+        encoder: JSONEncoder,
+        decoder: JSONDecoder
+    ) throws {
+        self.encoder = encoder
+        self.decoder = decoder
         self.path = path
         self.writeFilePath = URL(string: "\(path.absoluteString).tmp")!
         self.readOnly = readOnly

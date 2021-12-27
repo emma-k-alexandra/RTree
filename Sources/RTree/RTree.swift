@@ -29,8 +29,27 @@ where
     /// The offset of the root node of this tree
     private var rootOffset: UInt64 = 0
     
-    public init(path: URL, readOnly: Bool = false) throws {
-        let storage = try Storage<T>(path: path, readOnly: readOnly)
+    /// Decoder to use for elements of the tree
+    public var decoder = JSONDecoder()
+    
+    /// Encoder to use for elements of the tree
+    public var encoder = JSONEncoder()
+    
+    public init(
+        path: URL,
+        readOnly: Bool = false,
+        encoder: JSONEncoder = JSONEncoder(),
+        decoder: JSONDecoder = JSONDecoder()
+    ) throws {
+        self.encoder = encoder
+        self.decoder = decoder
+        
+        let storage = try Storage<T>(
+            path: path,
+            readOnly: readOnly,
+            encoder: encoder,
+            decoder: decoder
+        )
         
         if storage.isEmpty() {
             if readOnly {
@@ -162,8 +181,12 @@ extension RTree {
     
     mutating func load() throws {
         if self.storage == nil {
-            self.storage = try Storage<T>(path: self.path!, readOnly: self.isReadOnly)
-            
+            self.storage = try Storage<T>(
+                path: self.path!,
+                readOnly: self.isReadOnly,
+                encoder: encoder,
+                decoder: decoder
+            )
         }
         
         self.root = try self.storage!.loadDirectoryNodeData(withOffset: self.rootOffset)
@@ -201,7 +224,5 @@ extension RTree: Codable {
         self.rootOffset = rootNodeOffset
         
         self.isReadOnly = false
-        
     }
-    
 }
