@@ -54,7 +54,6 @@ where
         if storage.isEmpty() {
             if readOnly {
                 throw RTreeError.treeMarkedReadOnly
-                
             }
             
             self.path = path
@@ -63,15 +62,11 @@ where
             self.isReadOnly = readOnly
             
             try self.save()
-            
         } else {
             self = try storage.loadRoot()
             self.isReadOnly = readOnly
-            
         }
-        
     }
-    
 }
 
 extension RTree {
@@ -82,12 +77,10 @@ extension RTree {
     public mutating func insert(_ t: T) throws {
         if self.isReadOnly {
             throw RTreeError.treeMarkedReadOnly
-            
         }
         
         if self.root == nil {
             try self.load()
-            
         }
         
         var state = InsertionState(maxDepth: self.root!.depth + 1)
@@ -104,95 +97,77 @@ extension RTree {
                 
                 var newChildren = [RTreeNode.directoryNode(oldRoot), node]
                 self.root!.addChildren(&newChildren)
-                
             case .reinsert(let nodes):
                 insertionStack.append(contentsOf: nodes)
-            
             case .complete:
                 continue
-                
             }
-            
         }
         
-        self.size += 1
+        size += 1
         
-        try self.save()
-        
+        try save()
     }
-    
 }
 
 extension RTree {
     /// Finds the nearest neighbor to the given point. `nil` if tree is empty.
     public mutating func nearestNeighbor(_ queryPoint: T.Point) throws -> T? {
-        if self.root == nil {
-            try self.load()
-            
+        if root == nil {
+            try load()
         }
         
-        let result = self.root!.nearestNeighbor(queryPoint)
+        let result = root!.nearestNeighbor(queryPoint)
         
-        if result == nil, self.size > 0 {
-            var iterator = try self.nearestNeighborIterator(queryPoint)
+        if result == nil, size > 0 {
+            var iterator = try nearestNeighborIterator(queryPoint)
             
             return iterator.next()
-            
         }
         
         return result
-        
     }
     
     public mutating func nearestNeighborIterator(_ queryPoint: T.Point) throws -> NearestNeighborIterator<T> {
-        if self.root == nil {
-            try self.load()
-            
+        if root == nil {
+            try load()
         }
         
-        return NearestNeighborIterator(root: self.root!, queryPoint: queryPoint)
-        
+        return NearestNeighborIterator(root: root!, queryPoint: queryPoint)
     }
-    
 }
 
 extension RTree {
     /// Saves this tree to disk
     mutating func save() throws {
-        guard let storage = self.storage else {
+        guard let storage = storage else {
             throw RTreeError.storageNotPresent
-            
         }
         
-        if self.root == nil {
-            try self.load()
-            
+        if root == nil {
+            try load()
         }
         
-        if storage.isEmpty() {
-            try storage.initialize()
-            
-        }
+//        if storage.isEmpty() {
+//            try storage.initialize()
+//        }
         
-        self.rootOffset = try self.root!.save()
+        self.rootOffset = try root!.save()
         try storage.save(self)
-        
     }
     
     mutating func load() throws {
-        if self.storage == nil {
-            self.storage = try Storage<T>(
-                path: self.path!,
-                readOnly: self.isReadOnly,
+        if storage == nil {
+            storage = try Storage<T>(
+                path: path!,
+                readOnly: isReadOnly,
                 encoder: encoder,
                 decoder: decoder
             )
         }
         
-        self.root = try self.storage!.loadDirectoryNodeData(withOffset: self.rootOffset)
-        
+        root = try storage!.loadDirectoryNodeData(withOffset: rootOffset)
     }
-    
 }
 
 extension RTree: Codable {
@@ -204,25 +179,23 @@ extension RTree: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         
-        try container.encode(self.rootOffset.toPaddedString(), forKey: .root)
-        try container.encode(self.size, forKey: .size)
-        
+        try container.encode(rootOffset.toPaddedString(), forKey: .root)
+        try container.encode(size, forKey: .size)
     }
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.size = try container.decode(Int.self, forKey: .size)
+        size = try container.decode(Int.self, forKey: .size)
         
         let rootNodeOffsetString = try container.decode(String.self, forKey: .root)
         
         guard let rootNodeOffset = UInt64(rootNodeOffsetString) else {
             throw RTreeError.invalidRecord
-            
         }
         
-        self.rootOffset = rootNodeOffset
+        rootOffset = rootNodeOffset
         
-        self.isReadOnly = false
+        isReadOnly = false
     }
 }

@@ -129,6 +129,7 @@ final class RTreeTests: XCTestCase {
         
         var tree = try RTree<Element>(path: path)
         let zerozero = Element(point: Point2D(x: 0, y: 0))
+        
         let oneone = Element(point: Point2D(x: 1, y: 1))
         let threethree = Element(point: Point2D(x: 3, y: 3))
         
@@ -138,7 +139,5 @@ final class RTreeTests: XCTestCase {
         XCTAssertEqual(try tree.nearestNeighbor(zerozero.point)!, oneone)
         
         try? FileManager.default.removeItem(at: path)
-        
     }
-    
 }

@@ -96,31 +96,26 @@ extension DirectoryNodeData {
     
     /// Updates MBR of this node with another bounding box
     mutating func updateMBRWithElement(_ elementBoundingBox: BoundingRectangle<T.Point>) {
-        if let _ = self.boundingBox {
-            self.boundingBox!.add(elementBoundingBox)
-            
+        if self.boundingBox != nil {
+            self.boundingBox?.add(elementBoundingBox)
         } else {
             self.boundingBox = elementBoundingBox
-            
         }
-        
     }
     
     /// Inserts an element into this node
-    public mutating func insert(_ t: RTreeNode<T>, state: inout InsertionState) throws -> InsertionResult<T>
-    {
-        self.updateMBRWithElement(t.minimumBoundingRectangle())
+    mutating func insert(_ t: RTreeNode<T>, state: inout InsertionState) throws -> InsertionResult<T> {
+        updateMBRWithElement(t.minimumBoundingRectangle())
         
-        if t.depth() + 1 == self.depth {
+        if t.depth() + 1 == depth {
             var newChildren = [t]
             
-            self.addChildren(&newChildren)
-            self.childrenOffsets = []
-            return self.resolveOverflow(&state)
-            
+            addChildren(&newChildren)
+            childrenOffsets = []
+            return resolveOverflow(&state)
         }
 
-        var (follow, index) = self.chooseSubtree(t)
+        var (follow, index) = chooseSubtree(t)
         let expand = try follow.insert(t, state: &state)
         self.children![index] = .directoryNode(follow)
         
@@ -131,14 +126,11 @@ extension DirectoryNodeData {
             self.addChildren(&children)
             self.childrenOffsets = []
             return self.resolveOverflow(&state)
-            
         case .reinsert:
             self.updateMBR()
             return expand
-            
         case .complete:
             return .complete
-            
         }
         
     }

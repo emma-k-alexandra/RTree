@@ -8,32 +8,28 @@
 import Foundation
 
 /// Stores the reinsertion state
-public struct InsertionState {
-    public var reinsertions: [Bool]
+struct InsertionState {
+    var reinsertions: [Bool]
     
     init(maxDepth: Int) {
         assert(maxDepth > -1, "maxDepth must be non-negative")
-        self.reinsertions = [Bool](repeating: false, count: maxDepth)
-        
+        reinsertions = [Bool](repeating: false, count: maxDepth)
     }
     
 }
 
 extension InsertionState {
-    public func didReinsert(depth: Int) -> Bool {
+    func didReinsert(depth: Int) -> Bool {
         self.reinsertions[depth]
-        
     }
     
-    public mutating func markReinsertion(depth: Int) {
+    mutating func markReinsertion(depth: Int) {
         self.reinsertions[depth] = true
-        
     }
-    
 }
 
 /// The result of an insertion
-public enum InsertionResult<T>
+enum InsertionResult<T>
 where
     T: SpatialObject
 {
